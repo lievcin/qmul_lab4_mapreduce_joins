@@ -21,17 +21,21 @@
 			private LongWritable dailyVolume = new LongWritable();
 
 	    public void map(Object key, DailyStock entry, Context context) throws IOException, InterruptedException {
+
 	    	String companySymbol = entry.getCompany().toString();
 	    	String companySector = companiesDetails.get(companySymbol);
 
-	    	Calendar calendar = Calendar.getInstance();
-				calendar.setTimeInMillis(entry.getDay().get());
-				int tradingYear = calendar.get(Calendar.YEAR);
+	    	if (companySector!=null) {
 
-				sectorYear.set(companySector, tradingYear);
-				dailyVolume.set(entry.getVolume().get());
-				context.write(sectorYear, dailyVolume);
+		    	Calendar calendar = Calendar.getInstance();
+					calendar.setTimeInMillis(entry.getDay().get());
+					int tradingYear = calendar.get(Calendar.YEAR);
 
+					sectorYear.set(companySector, tradingYear);
+					dailyVolume.set(entry.getVolume().get());
+					context.write(sectorYear, dailyVolume);
+
+	    	}
 	    }
 
 			@Override
@@ -56,7 +60,7 @@
 						String[] fields = line.split("\t");
 						// Fields are: 0:Symbol 1:Name 2:IPOyear 3:Sector 4:industry
 						if (fields.length == 5)
-							companyInfo.put(fields[0], fields[3]);
+							companiesDetails.put(fields[0], fields[3]);
 					}
 					br.close();
 				} catch (IOException e1) {
