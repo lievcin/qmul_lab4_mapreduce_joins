@@ -33,4 +33,36 @@
 				context.write(sectorYear, dailyVolume);
 
 	    }
+
+			@Override
+			protected void setup(Context context) throws IOException, InterruptedException {
+
+				companiesDetails = new Hashtable<String, String>();
+				URI fileUri = context.getCacheFiles()[0];
+
+				FileSystem fs = FileSystem.get(context.getConfiguration());
+				FSDataInputStream in = fs.open(new Path(fileUri));
+
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+				String line = null;
+				try {
+					// we discard the header row
+					br.readLine();
+
+					while ((line = br.readLine()) != null) {
+						context.getCounter(CustomCounters.NUM_COMPANIES).increment(1);
+
+						String[] fields = line.split("\t");
+						// Fields are: 0:Symbol 1:Name 2:IPOyear 3:Sector 4:industry
+						if (fields.length == 5)
+							companyInfo.put(fields[0], fields[3]);
+					}
+					br.close();
+				} catch (IOException e1) {
+				}
+
+				super.setup(context);
+			}
+
 	}

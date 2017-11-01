@@ -12,23 +12,25 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+enum CustomCounters {NUM_COMPANIES}
 
 public class StockYearJoin {
     public static void runJob(String[] input, String output) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance();
+
         job.setJarByClass(StockYearJoin.class);
-
         job.setMapperClass(StockYearJoinMapper.class);
-        // job.setReducerClass(MinMaxReducer.class);
-
         job.setInputFormatClass(SequenceFileInputFormat.class);
 
-        job.setOutputKeyClass(Text.class);
+        job.setOutputKeyClass(TextIntPair.class);
+        job.setOutputValueClass(LongWritable.class);
 
-        job.setOutputValueClass(Text.class);
-        job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(TextIntPair.class);
+        job.setNumReduceTasks(0);
+
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
+        job.addCacheFile(new Path("/data/companylist.tsv").toUri());
 
         Path outputPath = new Path(output);
         FileInputFormat.setInputPaths(job, StringUtils.join(input, ","));
